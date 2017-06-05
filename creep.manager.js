@@ -9,13 +9,10 @@ var energy_threshold = 50;
 var spawns = ["Spawn1"];
 var creeps_desired = {
     "harvester":{role:"harvester", body:[WORK, MOVE, CARRY], num:0},
-    "courier": {role:"courier", body:[CARRY, CARRY, MOVE, MOVE], num:1},
     "miner" : {role:"miner", body:[WORK,WORK, CARRY, MOVE], num:4},
-    "courier": {role:"courier", body:[CARRY, CARRY, MOVE, MOVE], num:1},
-    "builder": {role:"builder", body:[WORK,WORK, CARRY,MOVE], num:3},
+    "courier": {role:"courier", body:[CARRY, CARRY, MOVE, MOVE], num:3},
+    "builder": {role:"builder", body:[WORK,WORK, CARRY,MOVE], num:4},
     "upgrader": {role:"upgrader", body:[WORK,CARRY, CARRY, MOVE], num:3},
-    
-    
 };
 
 
@@ -31,7 +28,7 @@ var creepManager =
             for(var i in Memory.creeps) {
 
                 if(!Game.creeps[i]) {
-                    console.log("MEM Deleting " + Memory.creeps[i]);
+                    console.log("MEM Deleting " + Memory.creeps[i].id);
                     delete Memory.creeps[i];
                 }
             }
@@ -104,10 +101,7 @@ var creepManager =
                     if(num < creeps_desired[c].num)
                     {
                        var c = spawn.createCreep(creeps_desired[c].body, null, {role:role})
-                       if(c == 0)
-                       {
-                        console.log("created creep: " + role);
-                       }
+                       //console.log("created creep: " + role);
                        break;
                    }
                    
@@ -135,13 +129,37 @@ var creepManager =
             if(creep.carry.energy < creep.carryCapacity) {
                 def.Mine(creep);
             }
+            else
+            {
+                def.TakeEnergyToTarget(creep, creep.pos.findClosestByRange(FIND_STRUCTURES)[0]);
+            }
             break;
             case "courier":
              if(creep.carry.energy < creep.carryCapacity) {
-                def.GrabResources(creep);
+                var empty_container = creep.room.find(FIND_STRUCTURES,
+                {filter:function(d)
+                    {
+                       if(d.structureType == STRUCTURE_CONTAINER && d.store['energy'] == 0) return d;
+                    }
+                });
+                if(empty_container.length == 0 && creep.memory.target == null) 
+                {
+                    creep.memory.target = creep.pos.findClosestByRange(FIND_STRUCTURES,
+                    {filter:function(d)
+                        {
+                           if(d.structureType == STRUCTURE_CONTAINER && d.store['energy'] > 0) return d;
+                        }
+                    })[0];
+                    creep.say('🔄 container');
+                }
+                if(!def.GrabResources(creep))
+                {
+                    creep.memory.target == null;
+                }
             }
-            else if(!def.TakeEnergyToTarget(creep, Game.spawns["Spawn1"]))
+            else
             {
+                def.TakeEnergyToTarget(creep, Game.spawns["Spawn1"]);
                 def.PickupWaste(creep);
             }
             break;

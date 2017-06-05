@@ -53,7 +53,7 @@ global.SourceEx =
              if(source.energy == 0) continue;
               
              if(Memory.sources[source.id] == null) Memory.sources[source.id] = [];
-
+             console.log(Memory.sources[source.id].length);
              if(Memory.sources[source.id].length < 3) output = source;
              else 
              {

@@ -24,7 +24,7 @@ var roleBuilder = {
            // }
 	    }
 	    else {
-	        if(!def.GrabResources(creep))
+	        if(!def.GrabResources(creep, true))
              def.Mine(creep);
 	    }
 	}
